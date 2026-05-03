@@ -1,0 +1,14 @@
+{
+  "name": "StyleAI - Tu armario inteligente",
+  "short_name": "StyleAI",
+  "description": "Armario inteligente con IA para crear outfits perfectos",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#7c6aff",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
