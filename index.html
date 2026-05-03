@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="StyleAI">
+<meta name="theme-color" content="#0a0a0a">
+<title>StyleAI</title>
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0a0a;
+  --bg2: #111111;
+  --bg3: #1a1a1a;
+  --bg4: #222222;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.14);
+  --text: #f0f0f0;
+  --text2: #888;
+  --text3: #555;
+  --accent: #7c6aff;
+  --accent2: #a599ff;
+  --accent-bg: rgba(124,106,255,0.12);
+  --accent-border: rgba(124,106,255,0.3);
+  --green: #4ade80;
+  --green-bg: rgba(74,222,128,0.1);
+  --amber: #fbbf24;
+  --amber-bg: rgba(251,191,36,0.1);
+  --red: #f87171;
+  --red-bg: rgba(248,113,113,0.1);
+  --radius: 14px;
+  --radius-sm: 8px;
+  --font-display: 'Syne', sans-serif;
+  --font-body: 'DM Sans', sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--font-body);font-size:15px;overflow:hidden;}
+.app{display:flex;flex-direction:column;height:100dvh;max-width:430px;margin:0 auto;position:relative;overflow:hidden;}
+
+/* SPLASH */
+.splash{position:absolute;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100;transition:opacity .5s ease;}
+.splash.hide{opacity:0;pointer-events:none;}
+.splash-logo{font-family:var(--font-display);font-size:48px;font-weight:800;letter-spacing:-2px;margin-bottom:8px;}
+.splash-logo span{color:var(--accent);}
+.splash-sub{color:var(--text2);font-size:14px;letter-spacing:1px;}
+.splash-dots{display:flex;gap:6px;margin-top:32px;}
+.splash-dot{width:6px;height:6px;border-radius:50%;background:var(--bg4);animation:pulse 1.2s ease-in-out infinite;}
+.splash-dot:nth-child(2){animation-delay:.2s;}
+.splash-dot:nth-child(3){animation-delay:.4s;}
+@keyframes pulse{0%,100%{background:var(--bg4);}50%{background:var(--accent);}}
+
+/* TOPBAR */
+.topbar{background:var(--bg);padding:14px 18px 10px;display:flex;align-items:center;justify-content:space-between;border-bottom:0.5px solid var(--border);flex-shrink:0;}
+.topbar-back{font-size:13px;color:var(--accent2);cursor:pointer;min-width:60px;font-family:var(--font-body);}
+.topbar-title{font-family:var(--font-display);font-size:16px;font-weight:700;letter-spacing:-0.3px;}
+.topbar-action{min-width:60px;text-align:right;font-size:13px;color:var(--accent2);cursor:pointer;}
+
+/* SCROLL AREA */
+.scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:none;}
+.scroll::-webkit-scrollbar{display:none;}
+.pad{padding:16px;}
+
+/* SCREENS */
+.screen{display:none;animation:fadeIn .2s ease;}
+.screen.active{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+
+/* TABBAR */
+.tabbar{display:flex;background:var(--bg);border-top:0.5px solid var(--border);flex-shrink:0;padding-bottom:env(safe-area-inset-bottom);}
+.tab{flex:1;padding:10px 4px 8px;text-align:center;cursor:pointer;font-size:10px;color:var(--text3);border:none;background:none;font-family:var(--font-body);transition:color .2s;}
+.tab.active{color:var(--accent);}
+.tab-icon{font-size:20px;display:block;margin-bottom:2px;}
+
+/* CARDS */
+.card{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px;}
+.card-accent{background:var(--accent-bg);border-color:var(--accent-border);}
+
+/* BUTTONS */
+.btn{width:100%;padding:14px;border:none;border-radius:var(--radius);font-size:15px;font-weight:500;cursor:pointer;font-family:var(--font-body);transition:transform .15s,opacity .15s;}
+.btn:active{transform:scale(0.97);}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-secondary{background:var(--bg3);color:var(--accent2);border:0.5px solid var(--accent-border);}
+.btn-ghost{background:none;color:var(--text2);border:0.5px solid var(--border);}
+.btn+.btn{margin-top:8px;}
+
+/* LABELS */
+.glabel{font-size:11px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:10px;font-family:var(--font-display);}
+
+/* TAGS */
+.tag-wrap{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;}
+.tag{font-size:12px;padding:6px 12px;border-radius:20px;background:var(--bg3);color:var(--text2);border:0.5px solid var(--border);cursor:pointer;transition:all .15s;font-family:var(--font-body);}
+.tag.sel{background:var(--accent-bg);color:var(--accent2);border-color:var(--accent-border);}
+
+/* PILLS */
+.pill{display:inline-block;font-size:10px;font-weight:500;padding:3px 9px;border-radius:20px;}
+.pill-ok{background:var(--green-bg);color:var(--green);}
+.pill-warn{background:var(--amber-bg);color:var(--amber);}
+.pill-bad{background:var(--red-bg);color:var(--red);}
+.pill-accent{background:var(--accent-bg);color:var(--accent2);}
+
+/* DIVIDER */
+.divider{height:0.5px;background:var(--border);margin:16px 0;}
+
+/* INPUT */
+.inp-group{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:8px;transition:border-color .2s;}
+.inp-group:focus-within{border-color:var(--accent-border);}
+.inp-lbl{font-size:11px;color:var(--text3);margin-bottom:4px;}
+.inp-row{display:flex;align-items:baseline;gap:4px;}
+.inp-row input{background:none;border:none;outline:none;font-size:22px;font-weight:500;color:var(--text);width:100%;font-family:var(--font-display);}
+.inp-row input::placeholder{color:var(--text3);}
+.inp-unit{font-size:13px;color:var(--text3);}
+.inp-2col{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
+
+/* METHOD CARDS */
+.method-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;}
+.method-card{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);padding:14px 8px;cursor:pointer;text-align:center;transition:all .15s;}
+.method-card.sel{border-color:var(--accent);background:var(--accent-bg);}
+.method-icon{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;font-size:20px;}
+.method-name{font-size:12px;font-weight:500;color:var(--text);font-family:var(--font-display);}
+.method-desc{font-size:10px;color:var(--text2);margin-top:2px;line-height:1.4;}
+
+/* UPLOAD BOX */
+.upload-box{background:var(--bg2);border:0.5px dashed var(--border2);border-radius:var(--radius);padding:28px 16px;text-align:center;cursor:pointer;margin-bottom:14px;transition:border-color .2s;}
+.upload-box:active{border-color:var(--accent);}
+.upload-circle{width:56px;height:56px;border-radius:50%;background:var(--accent-bg);border:0.5px solid var(--accent-border);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:24px;}
+.upload-title{font-size:14px;font-weight:500;color:var(--text);font-family:var(--font-display);margin-bottom:4px;}
+.upload-sub{font-size:11px;color:var(--text2);line-height:1.5;}
+
+/* CATEGORY GRID */
+.cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
+.cat-card{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);padding:14px;cursor:pointer;display:flex;align-items:center;gap:10px;transition:border-color .2s;}
+.cat-card:active{border-color:var(--accent-border);}
+.cat-icon{width:38px;height:38px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.cat-name{font-size:13px;font-weight:500;color:var(--text);font-family:var(--font-display);}
+.cat-count{font-size:11px;color:var(--text2);margin-top:2px;}
+
+/* PRENDA ROW */
+.prenda-row{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);padding:12px;display:flex;align-items:center;gap:12px;margin-bottom:8px;cursor:pointer;transition:border-color .2s;}
+.prenda-row:active{border-color:var(--accent-border);}
+.pdot{width:42px;height:42px;border-radius:var(--radius-sm);flex-shrink:0;border:0.5px solid var(--border);}
+
+/* SCORE BAR */
+.score-wrap{margin-bottom:8px;}
+.score-top{display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;}
+.score-lbl{color:var(--text2);}
+.score-num{font-weight:500;}
+.score-bar{height:4px;background:var(--bg4);border-radius:2px;overflow:hidden;}
+.score-fill{height:100%;border-radius:2px;transition:width .6s ease;}
+
+/* TIP CARDS */
+.tip{border-radius:var(--radius);padding:12px;margin-bottom:10px;}
+.tip-accent{background:var(--accent-bg);border:0.5px solid var(--accent-border);}
+.tip-green{background:var(--green-bg);border:0.5px solid rgba(74,222,128,0.2);}
+.tip-amber{background:var(--amber-bg);border:0.5px solid rgba(251,191,36,0.2);}
+.tip .tt{font-size:12px;font-weight:500;margin-bottom:3px;font-family:var(--font-display);}
+.tip-accent .tt{color:var(--accent2);}
+.tip-green .tt{color:var(--green);}
+.tip-amber .tt{color:var(--amber);}
+.tip .tb{font-size:12px;line-height:1.6;}
+.tip-accent .tb{color:rgba(165,153,255,0.8);}
+.tip-green .tb{color:rgba(74,222,128,0.8);}
+.tip-amber .tb{color:rgba(251,191,36,0.8);}
+
+/* STAT MINI */
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
+.stat-box{background:var(--bg3);border-radius:var(--radius-sm);padding:10px 12px;}
+.stat-val{font-size:18px;font-weight:700;color:var(--text);font-family:var(--font-display);}
+.stat-lbl{font-size:10px;color:var(--text3);margin-top:2px;}
+
+/* AVATAR */
+.avatar-wrap{display:flex;gap:14px;align-items:flex-start;margin-bottom:12px;}
+.outfit-chip{display:flex;align-items:center;gap:7px;background:var(--bg3);border:0.5px solid var(--border);border-radius:20px;padding:5px 11px;font-size:12px;color:var(--text2);margin-bottom:6px;}
+.odot{width:12px;height:12px;border-radius:50%;flex-shrink:0;}
+
+/* HAIR GRID */
+.hair-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:14px;}
+.hair-card{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);padding:12px;cursor:pointer;transition:all .15s;}
+.hair-card.sel{border-color:var(--accent);background:var(--accent-bg);}
+.hair-label{font-size:13px;font-weight:500;color:var(--text);font-family:var(--font-display);margin-bottom:3px;}
+.hair-desc{font-size:10px;color:var(--text2);margin-bottom:7px;}
+.hsubs{display:flex;gap:4px;flex-wrap:wrap;}
+.hsub{font-size:10px;padding:3px 7px;border-radius:20px;background:var(--bg4);color:var(--text3);cursor:pointer;transition:all .15s;}
+.hsub.sel{background:var(--accent);color:#fff;}
+
+/* PROFILE BANNER */
+.profile-mini{display:flex;align-items:center;gap:10px;background:var(--accent-bg);border:0.5px solid var(--accent-border);border-radius:var(--radius);padding:12px;margin-bottom:14px;}
+.profile-dot{width:10px;height:10px;border-radius:50%;background:var(--accent);flex-shrink:0;}
+.profile-txt{font-size:12px;color:var(--accent2);}
+
+/* FACIAL DETECT */
+.detect-card{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px;}
+.detect-row-item{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:0.5px solid var(--border);font-size:13px;}
+.detect-row-item:last-child{border-bottom:none;}
+.detect-key{color:var(--text2);}
+.detect-val{font-weight:500;color:var(--text);display:flex;align-items:center;gap:6px;}
+.conf{font-size:10px;padding:2px 7px;border-radius:20px;background:var(--green-bg);color:var(--green);}
+
+/* FACE SHAPES */
+.face-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:14px;}
+.face-card{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);padding:12px 6px;cursor:pointer;text-align:center;transition:all .15s;}
+.face-card.sel{border-color:var(--accent);background:var(--accent-bg);}
+.face-name{font-size:11px;font-weight:500;color:var(--text);margin-top:6px;font-family:var(--font-display);}
+
+/* CUIDADO PRENDA */
+.cuidado-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px;}
+.cuidado-item{background:var(--bg3);border-radius:var(--radius-sm);padding:10px 6px;text-align:center;border:0.5px solid var(--border);}
+.cuidado-icon{font-size:20px;display:block;margin-bottom:4px;}
+.cuidado-val{font-size:10px;font-weight:500;color:var(--text);font-family:var(--font-display);line-height:1.3;}
+.cuidado-lbl{font-size:9px;color:var(--text3);margin-top:2px;}
+.alerta-row{display:flex;align-items:flex-start;gap:8px;padding:7px 0;border-bottom:0.5px solid var(--border);}
+.alerta-row:last-child{border-bottom:none;}
+.alerta-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:4px;}
+.alerta-txt{font-size:12px;color:var(--text2);line-height:1.5;}
+.material-badge{display:inline-flex;align-items:center;gap:5px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:20px;padding:5px 10px;margin-right:5px;margin-bottom:5px;}
+.material-pct{font-size:11px;font-weight:500;color:var(--text);font-family:var(--font-display);}
+.material-nom{font-size:11px;color:var(--text2);}
+
+/* CORTE GRID */
+.corte-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
+.corte-card{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);padding:12px;text-align:center;}
+.corte-name{font-size:12px;font-weight:500;color:var(--text);font-family:var(--font-display);margin-top:6px;}
+.corte-desc{font-size:10px;color:var(--text2);margin-top:3px;line-height:1.4;}
+
+/* VENA GRID */
+.vena-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:14px;}
+.vena-card{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);padding:12px 6px;cursor:pointer;text-align:center;transition:all .15s;}
+.vena-card.sel{border-color:var(--accent);background:var(--accent-bg);}
+.vena-pill-bar{height:8px;border-radius:4px;margin:0 auto 8px;width:60%;}
+.vena-name{font-size:11px;font-weight:500;color:var(--text);font-family:var(--font-display);}
+.vena-sub{font-size:10px;color:var(--text2);margin-top:2px;}
+
+/* ONBOARDING */
+.onboard{position:absolute;inset:0;background:var(--bg);z-index:50;overflow-y:auto;}
+.onboard-step{display:none;min-height:100dvh;flex-direction:column;padding:0 0 100px;}
+.onboard-step.active{display:flex;}
+.onboard-header{padding:48px 24px 24px;}
+.onboard-num{font-size:11px;color:var(--accent2);font-family:var(--font-display);letter-spacing:1px;margin-bottom:12px;}
+.onboard-title{font-family:var(--font-display);font-size:28px;font-weight:800;line-height:1.1;letter-spacing:-1px;margin-bottom:8px;}
+.onboard-title span{color:var(--accent);}
+.onboard-sub{font-size:14px;color:var(--text2);line-height:1.6;}
+.onboard-body{padding:0 24px;flex:1;}
+.onboard-footer{padding:24px;background:linear-gradient(to top, var(--bg) 80%, transparent);position:sticky;bottom:0;}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- SPLASH -->
+<div class="splash" id="splash">
+  <div class="splash-logo">Style<span>AI</span></div>
+  <div class="splash-sub">Tu armario inteligente</div>
+  <div class="splash-dots">
+    <div class="splash-dot"></div>
+    <div class="splash-dot"></div>
+    <div class="splash-dot"></div>
+  </div>
+</div>
+
+<!-- ONBOARDING -->
+<div class="onboard" id="onboard">
+
+  <!-- STEP 1: BIENVENIDA -->
+  <div class="onboard-step active" id="ob1">
+    <div class="onboard-header">
+      <div class="onboard-num">01 / 04</div>
+      <div class="onboard-title">Tu <span>armario</span>, reinventado.</div>
+      <div class="onboard-sub">StyleAI analiza tus prendas, tu cuerpo y tu tono de piel para crear outfits que realmente te quedan bien.</div>
+    </div>
+    <div class="onboard-body">
+      <div style="display:grid;gap:10px;">
+        <div class="card card-accent" style="display:flex;gap:12px;align-items:center;">
+          <span style="font-size:24px;">👔</span>
+          <div><div style="font-size:13px;font-weight:500;font-family:var(--font-display);">Clóset inteligente</div><div style="font-size:12px;color:var(--text2);margin-top:2px;">Fotografia tu ropa, la IA detecta color, textura y tipo</div></div>
+        </div>
+        <div class="card" style="display:flex;gap:12px;align-items:center;">
+          <span style="font-size:24px;">🎨</span>
+          <div><div style="font-size:13px;font-weight:500;font-family:var(--font-display);">Armonía de colores</div><div style="font-size:12px;color:var(--text2);margin-top:2px;">Basada en tu subtono de piel real</div></div>
+        </div>
+        <div class="card" style="display:flex;gap:12px;align-items:center;">
+          <span style="font-size:24px;">🪞</span>
+          <div><div style="font-size:13px;font-weight:500;font-family:var(--font-display);">Probador virtual</div><div style="font-size:12px;color:var(--text2);margin-top:2px;">Mira el outfit completo antes de vestirte</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="onboard-footer">
+      <button class="btn btn-primary" onclick="goOB(2)">Empezar →</button>
+    </div>
+  </div>
+
+  <!-- STEP 2: MEDIDAS -->
+  <div class="onboard-step" id="ob2">
+    <div class="onboard-header">
+      <div class="onboard-num">02 / 04</div>
+      <div class="onboard-title">Tu <span>cuerpo</span>, tus reglas.</div>
+      <div class="onboard-sub">Escribe tus medidas o usa la cámara para que la IA calcule tu morfología automáticamente.</div>
+    </div>
+    <div class="onboard-body">
+      <div class="inp-2col">
+        <div class="inp-group"><div class="inp-lbl">Altura</div><div class="inp-row"><input type="number" inputmode="numeric" placeholder="175" id="ob-alt"><span class="inp-unit">cm</span></div></div>
+        <div class="inp-group"><div class="inp-lbl">Peso</div><div class="inp-row"><input type="number" inputmode="numeric" placeholder="70" id="ob-pes"><span class="inp-unit">kg</span></div></div>
+        <div class="inp-group"><div class="inp-lbl">Pecho/busto</div><div class="inp-row"><input type="number" inputmode="numeric" placeholder="96" id="ob-pec"><span class="inp-unit">cm</span></div></div>
+        <div class="inp-group"><div class="inp-lbl">Cintura</div><div class="inp-row"><input type="number" inputmode="numeric" placeholder="80" id="ob-cin"><span class="inp-unit">cm</span></div></div>
+        <div class="inp-group"><div class="inp-lbl">Cadera</div><div class="inp-row"><input type="number" inputmode="numeric" placeholder="98" id="ob-cad"><span class="inp-unit">cm</span></div></div>
+        <div class="inp-group"><div class="inp-lbl">Talla</div><div class="inp-row"><input type="text" placeholder="M" id="ob-tal"></div></div>
+      </div>
+      <div class="upload-box" onclick="goOB(3)">
+        <div class="upload-circle">📷</div>
+        <div class="upload-title">O detéctalas con foto</div>
+        <div class="upload-sub">Foto de cuerpo entero · La IA estima proporciones y morfología automáticamente</div>
+      </div>
+    </div>
+    <div class="onboard-footer">
+      <button class="btn btn-primary" onclick="saveMedidas()">Continuar →</button>
+      <button class="btn btn-ghost" onclick="goOB(3)">Saltar por ahora</button>
+    </div>
+  </div>
+
+  <!-- STEP 3: TONO DE PIEL -->
+  <div class="onboard-step" id="ob3">
+    <div class="onboard-header">
+      <div class="onboard-num">03 / 04</div>
+      <div class="onboard-title">Tu <span>tono</span> real.</div>
+      <div class="onboard-sub">Mira la parte interna de tu muñeca bajo luz natural. El color de tus venas revela tu subtono de piel.</div>
+    </div>
+    <div class="onboard-body">
+      <div class="vena-grid">
+        <div class="vena-card" id="vc-frio" onclick="selVena('frio')">
+          <div class="vena-pill-bar" style="background:#6B7FD4;"></div>
+          <div class="vena-name">Azul / morado</div>
+          <div class="vena-sub">Subtono frío</div>
+        </div>
+        <div class="vena-card" id="vc-calido" onclick="selVena('calido')">
+          <div class="vena-pill-bar" style="background:#4A8C4A;"></div>
+          <div class="vena-name">Verde</div>
+          <div class="vena-sub">Subtono cálido</div>
+        </div>
+        <div class="vena-card" id="vc-neutro" onclick="selVena('neutro')">
+          <div class="vena-pill-bar" style="background:linear-gradient(90deg,#5B7ACC,#4A8C4A);"></div>
+          <div class="vena-name">Azul-verde</div>
+          <div class="vena-sub">Subtono neutro</div>
+        </div>
+      </div>
+      <div id="vena-tip" style="display:none;"></div>
+      <div class="divider"></div>
+      <div class="glabel">Estilo preferido</div>
+      <div class="tag-wrap">
+        <span class="tag sel" onclick="togTag(this)">Casual</span>
+        <span class="tag" onclick="togTag(this)">Streetwear</span>
+        <span class="tag" onclick="togTag(this)">Smart casual</span>
+        <span class="tag" onclick="togTag(this)">Formal</span>
+        <span class="tag" onclick="togTag(this)">Minimalista</span>
+        <span class="tag" onclick="togTag(this)">Oversize</span>
+        <span class="tag" onclick="togTag(this)">Deportivo</span>
+        <span class="tag" onclick="togTag(this)">Bohemio</span>
+      </div>
+    </div>
+    <div class="onboard-footer">
+      <button class="btn btn-primary" onclick="goOB(4)">Continuar →</button>
+    </div>
+  </div>
+
+  <!-- STEP 4: FACIAL -->
+  <div class="onboard-step" id="ob4">
+    <div class="onboard-header">
+      <div class="onboard-num">04 / 04</div>
+      <div class="onboard-title">Tu <span>rostro</span> y cabello.</div>
+      <div class="onboard-sub">La IA analiza tu foto para detectar forma de rostro, cráneo, rasgos y recomendarte cortes de cabello.</div>
+    </div>
+    <div class="onboard-body">
+      <div class="upload-box" onclick="showFaceAnalysis()">
+        <div class="upload-circle">🤳</div>
+        <div class="upload-title">Tomar selfie de frente</div>
+        <div class="upload-sub">Luz natural · Sin gafas · Cabello hacia atrás<br>Detecta: rostro, cráneo, ojos, nariz, boca, cejas</div>
+      </div>
+      <div id="face-result" style="display:none;">
+        <div class="detect-card">
+          <div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:10px;">
+            <div style="width:56px;height:68px;border-radius:10px;background:var(--bg3);border:0.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0;">👤</div>
+            <div style="flex:1;">
+              <div style="font-size:13px;font-weight:500;font-family:var(--font-display);margin-bottom:4px;">Detectado <span class="conf">91%</span></div>
+              <div class="detect-row-item"><span class="detect-key">Rostro</span><span class="detect-val">Óvalo</span></div>
+              <div class="detect-row-item"><span class="detect-key">Cráneo</span><span class="detect-val">Mesocéfalo</span></div>
+              <div class="detect-row-item"><span class="detect-key">Mandíbula</span><span class="detect-val">Suave</span></div>
+            </div>
+          </div>
+          <div class="detect-row-item"><span class="detect-key">Ojos</span><span class="detect-val">Almendrados</span></div>
+          <div class="detect-row-item"><span class="detect-key">Nariz</span><span class="detect-val">Recta · proporcionada</span></div>
+          <div class="detect-row-item"><span class="detect-key">Cejas</span><span class="detect-val">Arqueadas naturales</span></div>
+        </div>
+      </div>
+      <div class="glabel">Tipo de cabello</div>
+      <div class="hair-grid">
+        <div class="hair-card" id="ht1" onclick="selHair('ht1')">
+          <div class="hair-label">Tipo 1 · Liso</div>
+          <div class="hair-desc">Sin rizo natural</div>
+          <div class="hsubs"><span class="hsub" onclick="selSub(event,'ht1','1a')">1a</span><span class="hsub" onclick="selSub(event,'ht1','1b')">1b</span><span class="hsub" onclick="selSub(event,'ht1','1c')">1c</span></div>
+        </div>
+        <div class="hair-card" id="ht2" onclick="selHair('ht2')">
+          <div class="hair-label">Tipo 2 · Ondulado</div>
+          <div class="hair-desc">Ondas en S</div>
+          <div class="hsubs"><span class="hsub" onclick="selSub(event,'ht2','2a')">2a</span><span class="hsub" onclick="selSub(event,'ht2','2b')">2b</span><span class="hsub" onclick="selSub(event,'ht2','2c')">2c</span></div>
+        </div>
+        <div class="hair-card sel" id="ht3" onclick="selHair('ht3')">
+          <div class="hair-label">Tipo 3 · Rizado</div>
+          <div class="hair-desc">Espirales definidos</div>
+          <div class="hsubs"><span class="hsub sel" onclick="selSub(event,'ht3','3a')">3a</span><span class="hsub" onclick="selSub(event,'ht3','3b')">3b</span><span class="hsub" onclick="selSub(event,'ht3','3c')">3c</span></div>
+        </div>
+        <div class="hair-card" id="ht4" onclick="selHair('ht4')">
+          <div class="hair-label">Tipo 4 · Afro</div>
+          <div class="hair-desc">Muy rizado / coily</div>
+          <div class="hsubs"><span class="hsub" onclick="selSub(event,'ht4','4a')">4a</span><span class="hsub" onclick="selSub(event,'ht4','4b')">4b</span><span class="hsub" onclick="selSub(event,'ht4','4c')">4c</span></div>
+        </div>
+      </div>
+      <div class="tag-wrap">
+        <span style="font-size:10px;color:var(--text3);width:100%;margin-bottom:-2px;">Densidad</span>
+        <span class="tag sel" data-g="den" onclick="togExcl(this,'den')">Fino</span>
+        <span class="tag" data-g="den" onclick="togExcl(this,'den')">Medio</span>
+        <span class="tag" data-g="den" onclick="togExcl(this,'den')">Grueso</span>
+      </div>
+    </div>
+    <div class="onboard-footer">
+      <button class="btn btn-primary" onclick="finishOnboard()">Entrar a StyleAI ✦</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- MAIN APP -->
+<div id="main-app" style="display:none;flex-direction:column;height:100%;flex:1;">
+  <div class="topbar">
+    <span class="topbar-back" id="tback"></span>
+    <span class="topbar-title" id="ttitle" style="font-family:var(--font-display);">Mi clóset</span>
+    <span class="topbar-action" id="taction"></span>
+  </div>
+
+  <div class="scroll" id="scroll-area">
+
+    <!-- CLOSET -->
+    <div class="screen active" id="sc-closet">
+      <div class="pad">
+        <div class="profile-mini">
+          <div class="profile-dot"></div>
+          <span class="profile-txt" id="profile-summary">Subtono frío · Rectángulo · Casual</span>
+        </div>
+        <button class="btn btn-primary" style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:14px;" onclick="goSub('camara','Agregar prenda')">
+          <span>📷</span> Fotografiar prenda
+        </button>
+        <div class="glabel">Categorías</div>
+        <div class="cat-grid">
+          <div class="cat-card" onclick="goSub('prendas','Camisas')"><div class="cat-icon" style="background:rgba(124,106,255,0.15);">👕</div><div><div class="cat-name">Camisas</div><div class="cat-count">4 prendas</div></div></div>
+          <div class="cat-card" onclick="goSub('prendas','Pantalones')"><div class="cat-icon" style="background:rgba(74,222,128,0.1);">👖</div><div><div class="cat-name">Pantalones</div><div class="cat-count">3 prendas</div></div></div>
+          <div class="cat-card" onclick="goSub('prendas','Chaquetas')"><div class="cat-icon" style="background:rgba(251,191,36,0.1);">🧥</div><div><div class="cat-name">Chaquetas</div><div class="cat-count">2 prendas</div></div></div>
+          <div class="cat-card" onclick="goSub('prendas','Zapatos')"><div class="cat-icon" style="background:rgba(248,113,113,0.1);">👟</div><div><div class="cat-name">Zapatos</div><div class="cat-count">5 pares</div></div></div>
+          <div class="cat-card" onclick="goSub('prendas','Gorros')"><div class="cat-icon" style="background:rgba(124,106,255,0.1);">🧢</div><div><div class="cat-name">Gorros</div><div class="cat-count">2 prendas</div></div></div>
+          <div class="cat-card" onclick="goSub('prendas','Accesorios')"><div class="cat-icon" style="background:rgba(74,222,128,0.08);">💍</div><div><div class="cat-name">Accesorios</div><div class="cat-count">6 piezas</div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRENDAS -->
+    <div class="screen" id="sc-prendas">
+      <div class="pad">
+        <div class="prenda-row" onclick="goSub('detalle','Camisa Oxford')">
+          <div class="pdot" style="background:#1a3a5c;"></div>
+          <div style="flex:1;"><div style="font-size:14px;font-weight:500;font-family:var(--font-display);">Camisa Oxford azul marino</div><div style="font-size:12px;color:var(--text2);margin-top:2px;">Lisa · Algodón · Formal</div><span class="pill pill-ok" style="margin-top:4px;display:inline-block;">Favorece tu subtono</span></div>
+        </div>
+        <div class="prenda-row" onclick="goSub('detalle','Camiseta beige')">
+          <div class="pdot" style="background:#e8e0d5;"></div>
+          <div style="flex:1;"><div style="font-size:14px;font-weight:500;font-family:var(--font-display);">Camiseta beige básica</div><div style="font-size:12px;color:var(--text2);margin-top:2px;">Lisa · Algodón · Casual</div><span class="pill pill-warn" style="margin-top:4px;display:inline-block;">Neutro para tu subtono</span></div>
+        </div>
+        <div class="prenda-row" onclick="goSub('detalle','Polo rojo vino')">
+          <div class="pdot" style="background:#8B2020;"></div>
+          <div style="flex:1;"><div style="font-size:14px;font-weight:500;font-family:var(--font-display);">Polo rojo vino</div><div style="font-size:12px;color:var(--text2);margin-top:2px;">Lisa · Piqué · Smart casual</div><span class="pill pill-bad" style="margin-top:4px;display:inline-block;">No favorece tu subtono</span></div>
+        </div>
+        <div class="prenda-row" onclick="goSub('detalle','Camisa verde oliva')">
+          <div class="pdot" style="background:#2d4a2d;"></div>
+          <div style="flex:1;"><div style="font-size:14px;font-weight:500;font-family:var(--font-display);">Camisa verde oliva</div><div style="font-size:12px;color:var(--text2);margin-top:2px;">Texturizada · Lino · Casual</div><span class="pill pill-warn" style="margin-top:4px;display:inline-block;">Neutro para tu subtono</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DETALLE PRENDA -->
+    <div class="screen" id="sc-detalle">
+      <div class="pad">
+
+        <div class="card">
+          <div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:12px;">
+            <div style="width:60px;height:60px;border-radius:var(--radius-sm);background:#1a3a5c;border:0.5px solid var(--border);flex-shrink:0;"></div>
+            <div>
+              <div style="font-size:15px;font-weight:700;font-family:var(--font-display);margin-bottom:4px;">Camisa Oxford azul marino</div>
+              <div style="font-size:12px;color:var(--text2);">#1a3a5c · Tono frío · Saturación alta</div>
+              <span class="pill pill-ok" style="margin-top:6px;display:inline-block;">Favorece tu subtono frío</span>
+            </div>
+          </div>
+          <div class="glabel" style="margin-bottom:6px;">Composición</div>
+          <div style="display:flex;flex-wrap:wrap;margin-bottom:4px;">
+            <div class="material-badge"><span class="material-pct">80%</span><span class="material-nom">Algodón</span></div>
+            <div class="material-badge"><span class="material-pct">20%</span><span class="material-nom">Poliéster</span></div>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:8px;">
+            <span class="pill pill-accent">Camisa</span>
+            <span class="pill pill-accent">Tejido Oxford</span>
+            <span class="pill pill-accent">Lisa</span>
+            <span class="pill pill-accent">Formal</span>
+            <span class="pill pill-accent">Manga larga</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="glabel" style="margin-bottom:10px;">Compatibilidad contigo</div>
+          <div class="score-wrap"><div class="score-top"><span class="score-lbl">Morfología (rectángulo)</span><span class="score-num" style="color:var(--green);">88%</span></div><div class="score-bar"><div class="score-fill" style="width:88%;background:var(--green);"></div></div></div>
+          <div class="score-wrap"><div class="score-top"><span class="score-lbl">Subtono de piel</span><span class="score-num" style="color:var(--green);">94%</span></div><div class="score-bar"><div class="score-fill" style="width:94%;background:var(--green);"></div></div></div>
+          <div class="score-wrap"><div class="score-top"><span class="score-lbl">Talla estimada</span><span class="score-num" style="color:var(--green);">91%</span></div><div class="score-bar"><div class="score-fill" style="width:91%;background:var(--green);"></div></div></div>
+        </div>
+
+        <div class="tip tip-accent">
+          <div class="tt">Cómo usar esta prenda</div>
+          <div class="tb">Con tu morfología rectángulo, úsala tucked in con cinturón visible para crear cintura. Arremangada queda más casual. Evita dejarla suelta sobre pantalón del mismo tono oscuro.</div>
+        </div>
+
+        <div class="card">
+          <div class="glabel" style="margin-bottom:10px;">Cómo cuidar esta prenda</div>
+          <div class="cuidado-grid">
+            <div class="cuidado-item">
+              <span class="cuidado-icon">🫧</span>
+              <div class="cuidado-val">30°C</div>
+              <div class="cuidado-lbl">Lavado</div>
+            </div>
+            <div class="cuidado-item">
+              <span class="cuidado-icon">🌀</span>
+              <div class="cuidado-val">600 rpm</div>
+              <div class="cuidado-lbl">Centrifugado</div>
+            </div>
+            <div class="cuidado-item">
+              <span class="cuidado-icon">🌡️</span>
+              <div class="cuidado-val">Media</div>
+              <div class="cuidado-lbl">Plancha</div>
+            </div>
+            <div class="cuidado-item">
+              <span class="cuidado-icon">🚫</span>
+              <div class="cuidado-val">No secadora</div>
+              <div class="cuidado-lbl">Secado</div>
+            </div>
+          </div>
+          <div class="glabel" style="margin-bottom:8px;">Instrucciones</div>
+          <div class="alerta-row">
+            <div class="alerta-dot" style="background:var(--green);"></div>
+            <span class="alerta-txt">Lavar a máquina en ciclo delicado a máximo 30°C</span>
+          </div>
+          <div class="alerta-row">
+            <div class="alerta-dot" style="background:var(--green);"></div>
+            <span class="alerta-txt">Secar al aire colgada, no en secadora</span>
+          </div>
+          <div class="alerta-row">
+            <div class="alerta-dot" style="background:var(--green);"></div>
+            <span class="alerta-txt">Planchar al revés a temperatura media mientras está levemente húmeda</span>
+          </div>
+          <div class="alerta-row">
+            <div class="alerta-dot" style="background:var(--amber);"></div>
+            <span class="alerta-txt">Separar de prendas oscuras en el primer lavado</span>
+          </div>
+          <div class="alerta-row">
+            <div class="alerta-dot" style="background:var(--amber);"></div>
+            <span class="alerta-txt">No usar blanqueador, puede dañar las fibras de poliéster</span>
+          </div>
+          <div class="alerta-row">
+            <div class="alerta-dot" style="background:var(--red);"></div>
+            <span class="alerta-txt">Agua caliente encoge el algodón — nunca más de 30°C</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="glabel" style="margin-bottom:8px;">Vida útil estimada</div>
+          <div class="score-wrap"><div class="score-top"><span class="score-lbl">Estado actual</span><span class="score-num" style="color:var(--green);">Nuevo</span></div><div class="score-bar"><div class="score-fill" style="width:100%;background:var(--green);"></div></div></div>
+          <div style="font-size:12px;color:var(--text2);margin-top:6px;line-height:1.5;">Con cuidado adecuado esta prenda puede durar <span style="color:var(--text);font-weight:500;">3–5 años</span>. El tejido Oxford es resistente pero sensible al calor excesivo.</div>
+        </div>
+
+        <button class="btn btn-primary" onclick="goTab('outfit')">Agregar al outfit</button>
+        <button class="btn btn-ghost" style="margin-top:8px;" onclick="goSub('cuidado-detalle','Guía de lavado')">Ver guía completa de lavado</button>
+      </div>
+    </div>
+
+    <!-- GUIA CUIDADO COMPLETA -->
+    <div class="screen" id="sc-cuidado-detalle">
+      <div class="pad">
+        <div class="tip tip-accent" style="margin-bottom:14px;">
+          <div class="tt">Camisa Oxford · 80% Algodón · 20% Poliéster</div>
+          <div class="tb">Las mezclas algodón-poliéster son más resistentes que el algodón puro pero requieren temperatura baja para no dañar el sintético.</div>
+        </div>
+        <div class="card">
+          <div class="glabel" style="margin-bottom:10px;">Antes de lavar</div>
+          <div class="alerta-row"><div class="alerta-dot" style="background:var(--accent2);"></div><span class="alerta-txt">Vaciar bolsillos y cerrar todos los botones para mantener la forma del cuello</span></div>
+          <div class="alerta-row"><div class="alerta-dot" style="background:var(--accent2);"></div><span class="alerta-txt">Voltear al revés para proteger el color y los botones</span></div>
+          <div class="alerta-row"><div class="alerta-dot" style="background:var(--accent2);"></div><span class="alerta-txt">Tratar manchas con quitamanchas antes de lavar</span></div>
+          <div class="alerta-row"><div class="alerta-dot" style="background:var(--accent2);"></div><span class="alerta-txt">Separar de prendas que suelten color (primeros 3 lavados)</span></div>
+        </div>
+        <div class="card">
+          <div class="glabel" style="margin-bottom:10px;">Lavado</div>
+          <div class="cuidado-grid" style="grid-template-columns:repeat(2,1fr);">
+            <div class="cuidado-item" style="padding:12px;">
+              <span class="cuidado-icon">🫧</span>
+              <div class="cuidado-val" style="font-size:13px;">Máquina</div>
+              <div class="cuidado-lbl">Ciclo delicado</div>
+            </div>
+            <div class="cuidado-item" style="padding:12px;">
+              <span class="cuidado-icon">🌡️</span>
+              <div class="cuidado-val" style="font-size:13px;">Máx. 30°C</div>
+              <div class="cuidado-lbl">Temperatura</div>
+            </div>
+          </div>
+          <div class="alerta-row"><div class="alerta-dot" style="background:var(--green);"></div><span class="alerta-txt">Detergente líquido suave, sin blanqueador</span></div>
+          <div class="alerta-row"><div class="alerta-dot" style="background:var(--amber);"></div><span class="alerta-txt">No mezclar con telas muy pesadas como denim o toallas</span></div>
+        </div>
+        <div class="card">
+          <div class="glabel" style="margin-bottom:10px;">Secado y plancha</div>
+          <div class="alerta-row"><div class="alerta-dot" style="background:var(--green);"></div><span class="alerta-txt">Colgar inmediatamente al sacar de la lavadora para evitar arrugas</span></div>
+          <div class="alerta-row"><div class="alerta-dot" style="background:var(--green);"></div><span class="alerta-txt">Secar a la sombra, no al sol directo (decolora el azul marino)</span></div>
+          <div class="alerta-row"><div class="alerta-dot" style="background:var(--amber);"></div><span class="alerta-txt">Si planchas, hazlo al revés con plancha a temperatura media (110°C)</span></div>
+          <div class="alerta-row"><div class="alerta-dot" style="background:var(--red);"></div><span class="alerta-txt">No usar secadora — el calor encoge el algodón y arruga el poliéster</span></div>
+        </div>
+        <div class="card">
+          <div class="glabel" style="margin-bottom:10px;">Almacenamiento</div>
+          <div class="alerta-row"><div class="alerta-dot" style="background:var(--green);"></div><span class="alerta-txt">Colgar en percha, nunca doblar para guardar</span></div>
+          <div class="alerta-row"><div class="alerta-dot" style="background:var(--green);"></div><span class="alerta-txt">Guardar en lugar fresco y seco, alejado de la luz solar</span></div>
+          <div class="alerta-row"><div class="alerta-dot" style="background:var(--accent2);"></div><span class="alerta-txt">Lavar antes de guardar por temporada para evitar manchas de sudor que se fijan</span></div>
+        </div>
+        <button class="btn btn-primary" onclick="goSub('detalle','Camisa Oxford')">← Volver a la prenda</button>
+      </div>
+    </div>
+
+    <!-- CAMARA -->
+    <div class="screen" id="sc-camara">
+      <div class="pad">
+        <div class="upload-box" onclick="goSub('analisis','Análisis IA')">
+          <div class="upload-circle">📸</div>
+          <div class="upload-title">Fotografiar prenda</div>
+          <div class="upload-sub">Cámara o galería · Cualquier tienda o armario<br>La IA detecta color, textura, tipo y uso correcto</div>
+        </div>
+        <div class="tip tip-accent">
+          <div class="tt">¿Qué detecta la IA?</div>
+          <div class="tb">Color exacto ajustando iluminación y balance de blancos, tipo de prenda, textura (lisa, texturizada, estampada), y cómo debe usarse según tu morfología y subtono de piel.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ANALISIS -->
+    <div class="screen" id="sc-analisis">
+      <div class="pad">
+        <div class="card">
+          <div class="glabel" style="margin-bottom:10px;">Prenda detectada</div>
+          <div style="display:flex;gap:12px;align-items:center;margin-bottom:12px;">
+            <div style="width:52px;height:52px;border-radius:10px;background:#4a7c59;border:0.5px solid var(--border);flex-shrink:0;"></div>
+            <div><div style="font-size:14px;font-weight:500;font-family:var(--font-display);">Verde salvia</div><div style="font-size:12px;color:var(--text2);margin-top:2px;">#4a7c59 · Tono neutro-frío</div></div>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px;">
+            <span class="pill pill-accent">Camisa</span><span class="pill pill-accent">Lino</span><span class="pill pill-accent">Lisa</span><span class="pill pill-accent">Smart casual</span>
+          </div>
+          <div class="score-wrap"><div class="score-top"><span class="score-lbl">Favorece tu subtono</span><span class="score-num" style="color:var(--amber);">71%</span></div><div class="score-bar"><div class="score-fill" style="width:71%;background:var(--amber);"></div></div></div>
+          <div class="score-wrap"><div class="score-top"><span class="score-lbl">Combina con tu clóset</span><span class="score-num" style="color:var(--green);">83%</span></div><div class="score-bar"><div class="score-fill" style="width:83%;background:var(--green);"></div></div></div>
+        </div>
+        <div class="tip tip-accent">
+          <div class="tt">Combina con estas prendas tuyas</div>
+          <div class="tb">Chino beige, pantalón negro, zapatillas blancas. El verde salvia es neutro-frío, funciona pero no es el más favorecedor para tu subtono. Considera un verde más azulado.</div>
+        </div>
+        <button class="btn btn-primary" onclick="goTab('closet')">Guardar en clóset</button>
+        <button class="btn btn-ghost" onclick="goTab('closet')">Descartar</button>
+      </div>
+    </div>
+
+    <!-- OUTFIT -->
+    <div class="screen" id="sc-outfit">
+      <div class="pad">
+        <div class="avatar-wrap">
+          <svg width="80" height="168" viewBox="0 0 80 168" style="flex-shrink:0;">
+            <ellipse cx="40" cy="15" rx="13" ry="14" fill="#3a3a3a"/>
+            <rect x="24" y="29" width="32" height="42" rx="6" fill="#1a3a5c"/>
+            <rect x="10" y="31" width="14" height="34" rx="5" fill="#1a3a5c"/>
+            <rect x="56" y="31" width="14" height="34" rx="5" fill="#1a3a5c"/>
+            <line x1="40" y1="29" x2="40" y2="71" stroke="#16325a" stroke-width="1.5"/>
+            <rect x="26" y="70" width="13" height="50" rx="5" fill="#c8b99a"/>
+            <rect x="41" y="70" width="13" height="50" rx="5" fill="#c8b99a"/>
+            <rect x="24" y="117" width="15" height="20" rx="4" fill="#2c2c2c"/>
+            <rect x="42" y="117" width="15" height="20" rx="4" fill="#2c2c2c"/>
+            <rect x="23" y="133" width="17" height="7" rx="3" fill="#333"/>
+            <rect x="41" y="133" width="17" height="7" rx="3" fill="#333"/>
+          </svg>
+          <div style="flex:1;">
+            <div class="glabel" style="margin-bottom:8px;">Outfit actual</div>
+            <div class="outfit-chip"><div class="odot" style="background:#1a3a5c;"></div>Camisa Oxford azul</div>
+            <div class="outfit-chip"><div class="odot" style="background:#c8b99a;"></div>Chino beige</div>
+            <div class="outfit-chip"><div class="odot" style="background:#2c2c2c;"></div>Zapatillas negras</div>
+            <div class="outfit-chip"><div class="odot" style="background:#b8860b;"></div>Cinturón camel</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="score-wrap"><div class="score-top"><span class="score-lbl">Armonía de color</span><span class="score-num" style="color:var(--green);">88%</span></div><div class="score-bar"><div class="score-fill" style="width:88%;background:var(--green);"></div></div></div>
+          <div class="score-wrap"><div class="score-top"><span class="score-lbl">Fit corporal</span><span class="score-num" style="color:var(--green);">91%</span></div><div class="score-bar"><div class="score-fill" style="width:91%;background:var(--green);"></div></div></div>
+          <div class="score-wrap"><div class="score-top"><span class="score-lbl">Subtono de piel</span><span class="score-num" style="color:var(--green);">94%</span></div><div class="score-bar"><div class="score-fill" style="width:94%;background:var(--green);"></div></div></div>
+          <div class="score-wrap"><div class="score-top"><span class="score-lbl">Uso correcto</span><span class="score-num" style="color:var(--amber);">85%</span></div><div class="score-bar"><div class="score-fill" style="width:85%;background:var(--amber);"></div></div></div>
+        </div>
+        <div class="tip tip-accent">
+          <div class="tt">Sugerencia IA</div>
+          <div class="tb">Outfit sólido. Agregar cinturón visible sube el score a 94%. Cambia zapatillas por mocasines oscuros para más cohesión formal-casual.</div>
+        </div>
+        <button class="btn btn-primary" onclick="goSub('camara','Agregar prenda')">Agregar prenda al outfit</button>
+        <button class="btn btn-secondary" style="margin-top:8px;">Guardar este outfit</button>
+      </div>
+    </div>
+
+    <!-- PERFIL -->
+    <div class="screen" id="sc-perfil">
+      <div class="pad">
+        <div class="stat-grid">
+          <div class="stat-box"><div class="stat-val" id="p-altura">175</div><div class="stat-lbl">Altura (cm)</div></div>
+          <div class="stat-box"><div class="stat-val" id="p-peso">70</div><div class="stat-lbl">Peso (kg)</div></div>
+          <div class="stat-box"><div class="stat-val">Rectángulo</div><div class="stat-lbl">Morfología</div></div>
+          <div class="stat-box"><div class="stat-val">Frío</div><div class="stat-lbl">Subtono de piel</div></div>
+        </div>
+        <div class="card">
+          <div class="glabel" style="margin-bottom:8px;">Rasgos faciales</div>
+          <div class="detect-row-item"><span class="detect-key">Rostro</span><span class="detect-val">Óvalo</span></div>
+          <div class="detect-row-item"><span class="detect-key">Cráneo</span><span class="detect-val">Mesocéfalo</span></div>
+          <div class="detect-row-item"><span class="detect-key">Cabello</span><span class="detect-val">Tipo 3a · Rizado suelto</span></div>
+          <div class="detect-row-item"><span class="detect-key">Ojos</span><span class="detect-val">Almendrados</span></div>
+          <div class="detect-row-item"><span class="detect-key">Nariz</span><span class="detect-val">Recta</span></div>
+        </div>
+        <div class="glabel">Colores que más te favorecen</div>
+        <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px;">
+          <div style="display:flex;align-items:center;gap:5px;background:var(--bg3);border-radius:20px;padding:5px 10px;"><div style="width:11px;height:11px;border-radius:50%;background:#1a1a2e;border:0.5px solid var(--border2);"></div><span style="font-size:11px;color:var(--text2);">Negro azulado</span></div>
+          <div style="display:flex;align-items:center;gap:5px;background:var(--bg3);border-radius:20px;padding:5px 10px;"><div style="width:11px;height:11px;border-radius:50%;background:#4a4ae0;border:0.5px solid var(--border2);"></div><span style="font-size:11px;color:var(--text2);">Azul eléctrico</span></div>
+          <div style="display:flex;align-items:center;gap:5px;background:var(--bg3);border-radius:20px;padding:5px 10px;"><div style="width:11px;height:11px;border-radius:50%;background:#7B68EE;border:0.5px solid var(--border2);"></div><span style="font-size:11px;color:var(--text2);">Lavanda</span></div>
+          <div style="display:flex;align-items:center;gap:5px;background:var(--bg3);border-radius:20px;padding:5px 10px;"><div style="width:11px;height:11px;border-radius:50%;background:#8B2252;border:0.5px solid var(--border2);"></div><span style="font-size:11px;color:var(--text2);">Fucsia</span></div>
+        </div>
+        <div class="tip tip-accent">
+          <div class="tt">Cortes de cabello recomendados</div>
+          <div class="tb">Fade + rizos arriba, curtido con volumen, buzz cut estructurado. Para tu tipo 3a con rostro óvalo, el fade lateral define sin restar volumen natural del rizo.</div>
+        </div>
+        <button class="btn btn-secondary">Editar perfil</button>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="tabbar">
+    <button class="tab active" id="tab-closet" onclick="goTab('closet')"><span class="tab-icon">👔</span>Clóset</button>
+    <button class="tab" id="tab-outfit" onclick="goTab('outfit')"><span class="tab-icon">✨</span>Outfit</button>
+    <button class="tab" id="tab-camara" onclick="goTab('camara')"><span class="tab-icon">📷</span>Cámara</button>
+    <button class="tab" id="tab-perfil" onclick="goTab('perfil')"><span class="tab-icon">🧍</span>Perfil</button>
+  </div>
+</div>
+
+<script>
+// SPLASH
+setTimeout(()=>{
+  document.getElementById('splash').classList.add('hide');
+  const done = localStorage.getItem('styleai-done');
+  if(done){
+    document.getElementById('onboard').style.display='none';
+    document.getElementById('main-app').style.display='flex';
+  }
+},1800);
+
+// ONBOARDING
+function goOB(n){
+  document.querySelectorAll('.onboard-step').forEach((s,i)=>s.classList.toggle('active',i===n-1));
+  window.scrollTo(0,0);
+}
+function saveMedidas(){
+  const a=document.getElementById('ob-alt').value;
+  const p=document.getElementById('ob-pes').value;
+  if(a) document.getElementById('p-altura').textContent=a;
+  if(p) document.getElementById('p-peso').textContent=p;
+  goOB(3);
+}
+function finishOnboard(){
+  localStorage.setItem('styleai-done','1');
+  document.getElementById('onboard').style.display='none';
+  document.getElementById('main-app').style.display='flex';
+}
+
+// VENA
+const venaData={
+  frio:{t:'Subtono frío',b:'Colores fríos te favorecen: azul marino, negro, fucsia, lavanda, blanco puro. Joyería en plata.'},
+  calido:{t:'Subtono cálido',b:'Colores tierra te van: camel, terracota, verde oliva, naranja quemado, dorado. Joyería en oro.'},
+  neutro:{t:'Subtono neutro',b:'Ventaja total: casi todos los colores te quedan. Nude, beige y blanco roto son tus comodines perfectos.'}
+};
+function selVena(v){
+  ['frio','calido','neutro'].forEach(k=>document.getElementById('vc-'+k).classList.remove('sel'));
+  document.getElementById('vc-'+v).classList.add('sel');
+  const d=venaData[v];
+  const tip=document.getElementById('vena-tip');
+  tip.style.display='block';
+  tip.className='tip tip-accent';
+  tip.innerHTML=`<div class="tt">${d.t}</div><div class="tb">${d.b}</div>`;
+}
+
+// FACIAL
+function showFaceAnalysis(){
+  document.getElementById('face-result').style.display='block';
+}
+
+// HAIR
+function selHair(id){
+  ['ht1','ht2','ht3','ht4'].forEach(k=>document.getElementById(k).classList.remove('sel'));
+  document.getElementById(id).classList.add('sel');
+}
+function selSub(e,hair,sub){
+  e.stopPropagation();
+  document.querySelectorAll('#'+hair+' .hsub').forEach(s=>s.classList.remove('sel'));
+  e.target.classList.add('sel');
+  selHair(hair);
+}
+
+// MAIN NAV
+const tabScreens={closet:'sc-closet',outfit:'sc-outfit',camara:'sc-camara',perfil:'sc-perfil'};
+let currentTab='closet';
+function goTab(t){
+  currentTab=t;
+  Object.keys(tabScreens).forEach(k=>{
+    document.getElementById(tabScreens[k]).classList.toggle('active',k===t);
+    document.getElementById('tab-'+k).classList.toggle('active',k===t);
+  });
+  const titles={closet:'Mi clóset',outfit:'Crear outfit',camara:'Agregar prenda',perfil:'Mi perfil'};
+  document.getElementById('ttitle').textContent=titles[t];
+  document.getElementById('tback').textContent='';
+  document.getElementById('tback').onclick=null;
+  document.getElementById('scroll-area').scrollTop=0;
+}
+const subScreens={prendas:'sc-prendas',detalle:'sc-detalle',camara:'sc-camara',analisis:'sc-analisis','cuidado-detalle':'sc-cuidado-detalle'};
+function goSub(name,title){
+  Object.values(tabScreens).forEach(s=>document.getElementById(s).classList.remove('active'));
+  Object.values(subScreens).forEach(s=>{const el=document.getElementById(s);if(el)el.classList.remove('active');});
+  const target=document.getElementById('sc-'+name);
+  if(target)target.classList.add('active');
+  document.getElementById('ttitle').textContent=title||name;
+  document.getElementById('tback').textContent='← Volver';
+  document.getElementById('tback').onclick=()=>goTab(currentTab);
+  document.getElementById('scroll-area').scrollTop=0;
+}
+
+// TAGS
+function togTag(el){el.classList.toggle('sel');}
+function togExcl(el,g){
+  document.querySelectorAll('[data-g="'+g+'"]').forEach(t=>t.classList.remove('sel'));
+  el.classList.add('sel');
+}
+
+// SW
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('/sw.js').catch(()=>{});
+}
+</script>
+</body>
+</html>
