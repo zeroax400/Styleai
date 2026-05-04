@@ -13,6 +13,12 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Faltan los campos base64 y mimeType' });
     }
 
+    if (!mimeType.startsWith('image/')) {
+      return res.status(400).json({ error: 'Formato invalido: ' + mimeType });
+    }
+
+    console.log('Image received, type:', mimeType, 'size:', base64.length);
+
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -21,7 +27,7 @@ export default async function handler(req, res) {
         'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
-        model: 'claude-3-haiku-20240307',
+        model: 'claude-3-sonnet-20240229',
         max_tokens: 1024,
         system: 'Analiza prendas de ropa y responde SOLO en JSON valido, sin markdown ni texto adicional.',
         messages: [{
