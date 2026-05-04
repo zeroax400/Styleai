@@ -17,31 +17,23 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Formato invalido: ' + mimeType });
     }
 
-    console.log('Image received, type:', mimeType, 'size:', base64.length);
-
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const apiKey = process.env.GEMINI_API_KEY || '';
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': process.env.ANTHROPIC_API_KEY || '',
-        'anthropic-version': '2024-06-20'
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'claude-3-5-sonnet-20241022',
-        max_tokens: 1024,
-        system: 'Analiza prendas de ropa y responde SOLO en JSON valido, sin markdown ni texto adicional.',
-        messages: [{
-          role: 'user',
-          content: [
+        contents: [{
+          parts: [
             {
-              type: 'image',
-              source: { type: 'base64', media_type: mimeType, data: base64 }
+              inline_data: {
+                mime_type: mimeType,
+                data: base64
+              }
             },
             {
-              type: 'text',
-              text: `Analiza esta prenda y responde SOLO JSON con este formato exacto:
+              text: `Analiza esta prenda de ropa y responde SOLO en JSON valido sin markdown ni texto adicional. Formato exacto:
 {
-  "nombre": "nombre descriptivo",
+  "nombre": "nombre descriptivo de la prenda",
   "tipo": "Camisa/Pantalon/Chaqueta/Zapatos/etc",
   "color_nombre": "color en espanol",
   "color_hex": "#xxxxxx",
@@ -54,27 +46,30 @@ export default async function handler(req, res) {
   "plancha": "no/baja/media/alta",
   "secadora": "si/no",
   "subtono_ok": "frio/calido/neutro/todos",
-  "consejo_uso": "como usar esta prenda para verse bien (maximo 2 oraciones)"
+  "consejo_uso": "como usar esta prenda para verse bien en maximo 2 oraciones"
 }`
             }
           ]
-        }]
+        }],
+        generationConfig: {
+          response_mime_type: 'application/json'
+        }
       })
     });
 
     if (!response.ok) {
       const errData = await response.json().catch(() => ({}));
-      throw new Error(`API error ${response.status}: ${errData.error?.message || 'Unknown'}`);
+      throw new Error(`API error ${response.status}: ${errData.error?.message || JSON.stringify(errData)}`);
     }
 
     const data = await response.json();
 
-    if (!data.content || !data.content[0] || !data.content[0].text) {
+    if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
       throw new Error('Respuesta de IA invalida');
     }
 
-    let texto = data.content[0].text.replace(/```json\s*|\s*```/g, '').trim();
-    const resultado = JSON.parse(texto);
+    const texto = data.candidates[0].content.parts[0].text.trim();
+    const resultado = JSON.parse(texto.replace(/```json\s*|\s*```/g, ''));
     res.status(200).json(resultado);
   } catch (e) {
     console.error('StyleAI API Error:', e);
