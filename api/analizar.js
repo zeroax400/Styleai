@@ -24,10 +24,10 @@ export default async function handler(req, res) {
       headers: {
         'Content-Type': 'application/json',
         'x-api-key': process.env.ANTHROPIC_API_KEY || '',
-        'anthropic-version': '2023-06-01'
+        'anthropic-version': '2024-06-20'
       },
       body: JSON.stringify({
-        model: 'claude-3-sonnet-20240229',
+        model: 'claude-3-5-sonnet-20241022',
         max_tokens: 1024,
         system: 'Analiza prendas de ropa y responde SOLO en JSON valido, sin markdown ni texto adicional.',
         messages: [{

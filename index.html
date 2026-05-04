@@ -885,7 +885,7 @@ async function analizarConIA(base64, mimeType) {
     mostrarResultado(p, base64, mimeType);
   } catch (e) {
     const el = document.getElementById('camara-resultado');
-    if (el) el.innerHTML = `<div style="background:rgba(248,113,113,0.1);border:0.5px solid rgba(248,113,113,0.2);border-radius:10px;padding:12px;color:#f87171;font-size:12px;">❌ Error al analizar. Verifica tu conexión e inténtalo de nuevo.</div>`;
+    if (el) el.innerHTML = `<div style="background:rgba(248,113,113,0.1);border:0.5px solid rgba(248,113,113,0.2);border-radius:10px;padding:12px;color:#f87171;font-size:12px;word-break:break-word;">❌ ${e.message}</div>`;
   }
 }
 
@@ -941,6 +941,19 @@ function mostrarResultado(p, base64, mimeType) {
 
 function guardarPrenda() {
   showToast('✓ Prenda guardada en tu clóset');
+}
+
+function showToast(msg) {
+  let t = document.getElementById('toast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'toast';
+    t.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#222;color:#fff;font-size:13px;padding:10px 20px;border-radius:20px;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none;border:0.5px solid rgba(255,255,255,0.1);font-family:var(--font-body);';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.opacity = '1';
+  setTimeout(() => t.style.opacity = '0', 2000);
 }
 
 // SW

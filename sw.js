@@ -1,4 +1,4 @@
-const CACHE = 'styleai-v3';
+const CACHE = 'styleai-v4';
 const PRECACHE_ASSETS = ['/index.html', '/manifest.json'];
 
 self.addEventListener('install', e => {
