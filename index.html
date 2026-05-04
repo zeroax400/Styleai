@@ -648,29 +648,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
       </div>
     </div>
 
-    <!-- ANALISIS -->
-    <div class="screen" id="sc-analisis">
-      <div class="pad">
-        <div class="card">
-          <div class="glabel" style="margin-bottom:10px;">Prenda detectada</div>
-          <div style="display:flex;gap:12px;align-items:center;margin-bottom:12px;">
-            <div style="width:52px;height:52px;border-radius:10px;background:#4a7c59;border:0.5px solid var(--border);flex-shrink:0;"></div>
-            <div><div style="font-size:14px;font-weight:500;font-family:var(--font-display);">Verde salvia</div><div style="font-size:12px;color:var(--text2);margin-top:2px;">#4a7c59 · Tono neutro-frío</div></div>
-          </div>
-          <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px;">
-            <span class="pill pill-accent">Camisa</span><span class="pill pill-accent">Lino</span><span class="pill pill-accent">Lisa</span><span class="pill pill-accent">Smart casual</span>
-          </div>
-          <div class="score-wrap"><div class="score-top"><span class="score-lbl">Favorece tu subtono</span><span class="score-num" style="color:var(--amber);">71%</span></div><div class="score-bar"><div class="score-fill" style="width:71%;background:var(--amber);"></div></div></div>
-          <div class="score-wrap"><div class="score-top"><span class="score-lbl">Combina con tu clóset</span><span class="score-num" style="color:var(--green);">83%</span></div><div class="score-bar"><div class="score-fill" style="width:83%;background:var(--green);"></div></div></div>
-        </div>
-        <div class="tip tip-accent">
-          <div class="tt">Combina con estas prendas tuyas</div>
-          <div class="tb">Chino beige, pantalón negro, zapatillas blancas. El verde salvia es neutro-frío, funciona pero no es el más favorecedor para tu subtono. Considera un verde más azulado.</div>
-        </div>
-        <button class="btn btn-primary" onclick="goTab('closet')">Guardar en clóset</button>
-        <button class="btn btn-ghost" onclick="goTab('closet')">Descartar</button>
-      </div>
-    </div>
+    <!-- ANALISIS - vacío, se llena con IA -->
 
     <!-- OUTFIT -->
     <div class="screen" id="sc-outfit">
@@ -851,7 +829,7 @@ function togExcl(el,g){
 }
 
 // ─── CAMARA REAL CON IA ───
-const API_KEY = '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';
+const API_KEY = 'TU_API_KEY_AQUI';
 
 function activarCamara() {
   const input = document.createElement('input');
