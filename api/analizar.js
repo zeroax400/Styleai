@@ -9,16 +9,22 @@ export default async function handler(req, res) {
   try {
     const { base64, mimeType } = req.body;
 
+    if (!base64 || !mimeType) {
+      return res.status(400).json({ error: 'Faltan los campos base64 y mimeType' });
+    }
+
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': process.env.ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01'
+        'x-api-key': process.env.ANTHROPIC_API_KEY || '',
+        'anthropic-version': '2023-06-01',
+        'anthropic-beta': 'image-outputs-2025-05-20'
       },
       body: JSON.stringify({
-        model: 'claude-opus-4-5',
+        model: 'claude-sonnet-4-20250514',
         max_tokens: 1024,
+        system: 'Analiza prendas de ropa y responde SOLO en JSON valido, sin markdown ni texto adicional.',
         messages: [{
           role: 'user',
           content: [
@@ -28,22 +34,22 @@ export default async function handler(req, res) {
             },
             {
               type: 'text',
-              text: `Analiza esta prenda de ropa y responde SOLO en JSON con este formato exacto sin markdown:
+              text: `Analiza esta prenda y responde SOLO JSON con este formato exacto:
 {
-  "nombre": "nombre descriptivo de la prenda",
-  "tipo": "Camisa/Pantalón/Chaqueta/Zapatos/etc",
-  "color_nombre": "nombre del color en español",
+  "nombre": "nombre descriptivo",
+  "tipo": "Camisa/Pantalon/Chaqueta/Zapatos/etc",
+  "color_nombre": "color en espanol",
   "color_hex": "#xxxxxx",
-  "tono": "frío/cálido/neutro",
-  "material": "material principal estimado",
+  "tono": "frio/calido/neutro",
+  "material": "material principal",
   "textura": "lisa/texturizada/estampada",
   "estilo": "casual/formal/sport/smart casual",
-  "lavado_temp": "30°C/40°C/60°C",
-  "lavado_tipo": "máquina/mano/seco",
+  "lavado_temp": "30C/40C/60C",
+  "lavado_tipo": "maquina/mano/seco",
   "plancha": "no/baja/media/alta",
-  "secadora": "sí/no",
-  "subtono_ok": "frío/cálido/neutro/todos",
-  "consejo_uso": "cómo usar esta prenda para verse bien en máximo 2 oraciones"
+  "secadora": "si/no",
+  "subtono_ok": "frio/calido/neutro/todos",
+  "consejo_uso": "como usar esta prenda para verse bien (maximo 2 oraciones)"
 }`
             }
           ]
@@ -51,11 +57,22 @@ export default async function handler(req, res) {
       })
     });
 
+    if (!response.ok) {
+      const errData = await response.json().catch(() => ({}));
+      throw new Error(`API error ${response.status}: ${errData.error?.message || 'Unknown'}`);
+    }
+
     const data = await response.json();
-    const texto = data.content[0].text.replace(/```json|```/g, '').trim();
+
+    if (!data.content || !data.content[0] || !data.content[0].text) {
+      throw new Error('Respuesta de IA invalida');
+    }
+
+    let texto = data.content[0].text.replace(/```json\s*|\s*```/g, '').trim();
     const resultado = JSON.parse(texto);
     res.status(200).json(resultado);
   } catch (e) {
+    console.error('StyleAI API Error:', e);
     res.status(500).json({ error: 'Error al analizar la prenda: ' + e.message });
   }
 }
